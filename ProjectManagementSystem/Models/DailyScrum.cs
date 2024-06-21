@@ -11,5 +11,6 @@ namespace ProjectManagementSystem.Models
         public Scrum Scrum { get; set; }
 
         public string? description { get; set; } 
+
     }
 }

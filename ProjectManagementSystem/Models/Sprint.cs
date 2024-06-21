@@ -13,7 +13,6 @@ namespace ProjectManagementSystem.Models
 
         public Scrum scrum { get; set; }
 
-
         public DateTime springTime { get; set; }
 
         public string description {  get; set; }
