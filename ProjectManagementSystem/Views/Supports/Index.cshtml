@@ -1,0 +1,53 @@
+﻿@model IEnumerable<ProjectManagementSystem.Models.Support>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.tasksForUser)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.helpDescription)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.helperID)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.tasksForUser.taskForUserID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.helpDescription)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.helperID)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.supportID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.supportID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.supportID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

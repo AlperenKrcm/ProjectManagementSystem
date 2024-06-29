@@ -1,0 +1,27 @@
+﻿@{
+    ViewBag.Title = "User List";
+}
+
+<h2>Users</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in (List<Dictionary<string, object>>)ViewBag.Users)
+        {
+            <tr>
+                <td>@user["UserName"]</td>
+                <td>@string.Join(", ", (IList<string>)user["Roles"])</td>
+                <td>
+                    <a asp-action="AssignRole" asp-route-userId="@user["UserId"]">Assign Role</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

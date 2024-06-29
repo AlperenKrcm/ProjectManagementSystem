@@ -1,0 +1,53 @@
+﻿@model IEnumerable<ProjectManagementSystem.Models.Sprint>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.sprintNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.scrum)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.springTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.description)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.sprintNumber)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.scrum.scrumID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.springTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.description)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.sprintID">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.sprintID">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.sprintID">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

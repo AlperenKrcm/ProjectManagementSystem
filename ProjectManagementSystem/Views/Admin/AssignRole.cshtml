@@ -1,0 +1,26 @@
+﻿@using Microsoft.AspNetCore.Identity
+@{
+    ViewBag.Title = "Assign Role";
+    var userId = ViewBag.UserId as string;
+    var userName = ViewBag.UserName as string;
+    var roles = ViewBag.Roles as List<IdentityRole>;
+    var userRoles = ViewBag.UserRoles as IList<string>;
+}
+
+<h2>Assign Role to @userName</h2>
+
+<form asp-action="AssignRole" method="post">
+    <input type="hidden" name="userId" value="@userId" />
+    <div>
+        <ul>
+            @foreach (var role in roles)
+            {
+                <li>
+                    <input type="checkbox" name="selectedRoles" value="@role.Name" @(userRoles.Contains(role.Name) ? "checked" : "") />
+                    <label>@role.Name</label>
+                </li>
+            }
+        </ul>
+    </div>
+    <button type="submit">Save</button>
+</form>
