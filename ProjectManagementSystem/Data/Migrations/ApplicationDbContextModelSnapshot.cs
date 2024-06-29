@@ -17,7 +17,7 @@ namespace ProjectManagementSystem.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.24")
+                .HasAnnotation("ProductVersion", "6.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -373,15 +373,12 @@ namespace ProjectManagementSystem.Data.Migrations
                     b.Property<string>("helperID")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("taskID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("tasksForUsertaskForUserID")
+                    b.Property<int>("taskForUserID")
                         .HasColumnType("int");
 
                     b.HasKey("supportID");
 
-                    b.HasIndex("tasksForUsertaskForUserID");
+                    b.HasIndex("taskForUserID");
 
                     b.ToTable("supports");
                 });
@@ -514,7 +511,7 @@ namespace ProjectManagementSystem.Data.Migrations
                 {
                     b.HasOne("ProjectManagementSystem.Models.TasksForUser", "tasksForUser")
                         .WithMany()
-                        .HasForeignKey("tasksForUsertaskForUserID")
+                        .HasForeignKey("taskForUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

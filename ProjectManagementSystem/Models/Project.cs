@@ -19,6 +19,8 @@ namespace ProjectManagementSystem.Models
         public string status {  get; set; }
 
         public string client {  get; set; }
+        public virtual ICollection<TasksForUser> TasksForUsers { get; set; }
+
 
 
     }

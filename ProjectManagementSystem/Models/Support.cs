@@ -6,8 +6,8 @@ namespace ProjectManagementSystem.Models
     {
         public int supportID { get; set; }
 
-        [ForeignKey("task")]
-        public int taskID {  get; set; }
+        [ForeignKey("tasksForUser")]
+        public int taskForUserID {  get; set; }
         public TasksForUser tasksForUser { get; set; }
 
         public string description {  get; set; }
