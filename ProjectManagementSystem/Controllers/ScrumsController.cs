@@ -22,6 +22,7 @@ namespace ProjectManagementSystem.Controllers
         // GET: Scrums
         public async Task<IActionResult> Index()
         {
+            ViewData.Clear();
             var applicationDbContext = _context.scrums.Include(s => s.project);
             return View(await applicationDbContext.ToListAsync());
         }
@@ -53,19 +54,76 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: Scrums/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("scrumID,scrumMaster,ProjectID")] Scrum scrum)
+        public async Task<IActionResult> Create([Bind("scrumID,scrumMaster,ProjectID")] Scrum scrum, int numberofSprint)
         {
+            ModelState.Remove("Project");
             if (ModelState.IsValid)
             {
                 _context.Add(scrum);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                DailyScrum dummydaily = new DailyScrum();
+               
+                dummydaily = _context.dailyScrumsTable.Where(x => x.ScrumID == scrum.scrumID).FirstOrDefault();
+
+
+                if (dummydaily != null)
+                {
+
+                    var a = dummydaily.dailyScrumTime;
+
+                    for (int i = dummydaily.dailyScrumNumber; i < numberofSprint; i++)
+                    {
+                        DailyScrum dailyScrum = new DailyScrum();
+                        dailyScrum.ScrumID = Convert.ToInt32(scrum.scrumID);
+                        dailyScrum.dailyScrumNumber = i + dummydaily.dailyScrumNumber + 1;
+
+                        if ( a.DayOfWeek == DayOfWeek.Saturday)
+                            a = a.AddDays(2);
+                        else if (a.DayOfWeek == DayOfWeek.Sunday)
+                            a = a.AddDays(1);
+                        
+                        dailyScrum.dailyScrumTime = a;
+                        dailyScrum.description = "Yoneticinin düzenlenmesi için boş bırakıldı";
+
+                        _context.Add(dailyScrum);
+                        await _context.SaveChangesAsync();
+
+                    }
+
+                }
+                else
+                {
+                    DateTime a= DateTime.Now;
+                    for (int i = 0; i < numberofSprint; i++)
+                    {
+                        
+                        DailyScrum dailyScrum = new DailyScrum();
+                        dailyScrum.ScrumID = Convert.ToInt32(scrum.scrumID);
+                        dailyScrum.dailyScrumNumber = i + 1;
+                        
+                        if (a.DayOfWeek == DayOfWeek.Saturday)
+                            a = a.AddDays(2);
+                        else if (a.DayOfWeek == DayOfWeek.Sunday)
+                            a = a.AddDays(1);
+                      
+
+                        dailyScrum.dailyScrumTime = a;
+                        dailyScrum.description = "Yoneticinin düzenlenmesi için boş bırakıldı";
+                        _context.Add(dailyScrum);
+                        await _context.SaveChangesAsync();
+                        a = a.AddDays(1);
+                    }
+                }
+              return RedirectToAction(nameof(Index));
+
             }
             ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName", scrum.ProjectID);
+
+
+
             return View(scrum);
         }
 
@@ -155,14 +213,14 @@ namespace ProjectManagementSystem.Controllers
             {
                 _context.scrums.Remove(scrum);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ScrumExists(int id)
         {
-          return (_context.scrums?.Any(e => e.scrumID == id)).GetValueOrDefault();
+            return (_context.scrums?.Any(e => e.scrumID == id)).GetValueOrDefault();
         }
     }
 }

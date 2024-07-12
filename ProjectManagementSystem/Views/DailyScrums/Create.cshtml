@@ -13,8 +13,18 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="scrumID" class="control-label"></label>
-                <select asp-for="scrumID" class ="form-control" asp-items="ViewBag.scrumID"></select>
+                <label asp-for="dailyScrumNumber" class="control-label"></label>
+                <input asp-for="dailyScrumNumber" class="form-control" />
+                <span asp-validation-for="dailyScrumNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ScrumID" class="control-label"></label>
+                <select asp-for="ScrumID" class ="form-control" asp-items="ViewBag.ScrumID"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="dailyScrumTime" class="control-label"></label>
+                <input asp-for="dailyScrumTime" class="form-control" />
+                <span asp-validation-for="dailyScrumTime" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="description" class="control-label"></label>
@@ -32,6 +42,3 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}

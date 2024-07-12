@@ -16,7 +16,7 @@ public class Program
 
         builder.Services.AddDefaultIdentity<IdentityUser>(options =>
         {
-            options.SignIn.RequireConfirmedAccount = true;
+            options.SignIn.RequireConfirmedAccount = false;
             options.Password.RequiredLength = 10;
         })
             .AddRoles<IdentityRole>()

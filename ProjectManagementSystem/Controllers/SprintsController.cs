@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +22,7 @@ namespace ProjectManagementSystem.Controllers
         // GET: Sprints
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.sprints.Include(s => s.scrum);
+            var applicationDbContext = _context.sprints.Include(s => s.Scrum);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -36,7 +35,7 @@ namespace ProjectManagementSystem.Controllers
             }
 
             var sprint = await _context.sprints
-                .Include(s => s.scrum)
+                .Include(s => s.Scrum)
                 .FirstOrDefaultAsync(m => m.sprintID == id);
             if (sprint == null)
             {
@@ -49,7 +48,7 @@ namespace ProjectManagementSystem.Controllers
         // GET: Sprints/Create
         public IActionResult Create()
         {
-            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID");
+            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID");
             return View();
         }
 
@@ -58,7 +57,7 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("sprintID,sprintNumber,ScrumID,springTime,description")] Sprint sprint)
+        public async Task<IActionResult> Create([Bind("sprintID,scrumID,description")] Sprint sprint)
         {
             if (ModelState.IsValid)
             {
@@ -66,7 +65,7 @@ namespace ProjectManagementSystem.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.ScrumID);
+            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.scrumID);
             return View(sprint);
         }
 
@@ -83,7 +82,7 @@ namespace ProjectManagementSystem.Controllers
             {
                 return NotFound();
             }
-            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.ScrumID);
+            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.scrumID);
             return View(sprint);
         }
 
@@ -92,7 +91,7 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("sprintID,sprintNumber,ScrumID,springTime,description")] Sprint sprint)
+        public async Task<IActionResult> Edit(int id, [Bind("sprintID,scrumID,description")] Sprint sprint)
         {
             if (id != sprint.sprintID)
             {
@@ -119,7 +118,7 @@ namespace ProjectManagementSystem.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.ScrumID);
+            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.scrumID);
             return View(sprint);
         }
 
@@ -132,7 +131,7 @@ namespace ProjectManagementSystem.Controllers
             }
 
             var sprint = await _context.sprints
-                .Include(s => s.scrum)
+                .Include(s => s.Scrum)
                 .FirstOrDefaultAsync(m => m.sprintID == id);
             if (sprint == null)
             {

@@ -347,7 +347,7 @@ namespace ProjectManagementSystem.Data.Migrations
                     b.Property<DateTime>("springTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("sprintNumber")
+                    b.Property<int>("dailyScrumNumber")
                         .HasColumnType("int");
 
                     b.HasKey("sprintID");

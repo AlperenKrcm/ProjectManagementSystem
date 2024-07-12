@@ -22,20 +22,20 @@ namespace ProjectManagementSystem.Controllers
         // GET: DailyScrums
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.dailyScrums.Include(d => d.Scrum);
+            var applicationDbContext = _context.dailyScrumsTable.Include(d => d.scrum);
             return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: DailyScrums/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null || _context.dailyScrums == null)
+            if (id == null || _context.dailyScrumsTable == null)
             {
                 return NotFound();
             }
 
-            var dailyScrum = await _context.dailyScrums
-                .Include(d => d.Scrum)
+            var dailyScrum = await _context.dailyScrumsTable
+                .Include(d => d.scrum)
                 .FirstOrDefaultAsync(m => m.dailyScrumID == id);
             if (dailyScrum == null)
             {
@@ -48,7 +48,7 @@ namespace ProjectManagementSystem.Controllers
         // GET: DailyScrums/Create
         public IActionResult Create()
         {
-            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID");
+            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID");
             return View();
         }
 
@@ -57,7 +57,7 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("dailyScrumID,scrumID,description")] DailyScrum dailyScrum)
+        public async Task<IActionResult> Create([Bind("dailyScrumID,dailyScrumNumber,ScrumID,dailyScrumTime,description")] DailyScrum dailyScrum)
         {
             if (ModelState.IsValid)
             {
@@ -65,24 +65,24 @@ namespace ProjectManagementSystem.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.scrumID);
+            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.ScrumID);
             return View(dailyScrum);
         }
 
         // GET: DailyScrums/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.dailyScrums == null)
+            if (id == null || _context.dailyScrumsTable == null)
             {
                 return NotFound();
             }
 
-            var dailyScrum = await _context.dailyScrums.FindAsync(id);
+            var dailyScrum = await _context.dailyScrumsTable.FindAsync(id);
             if (dailyScrum == null)
             {
                 return NotFound();
             }
-            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.scrumID);
+            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.ScrumID);
             return View(dailyScrum);
         }
 
@@ -91,7 +91,7 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("dailyScrumID,scrumID,description")] DailyScrum dailyScrum)
+        public async Task<IActionResult> Edit(int id, [Bind("dailyScrumID,dailyScrumNumber,ScrumID,dailyScrumTime,description")] DailyScrum dailyScrum)
         {
             if (id != dailyScrum.dailyScrumID)
             {
@@ -118,20 +118,20 @@ namespace ProjectManagementSystem.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.scrumID);
+            ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.ScrumID);
             return View(dailyScrum);
         }
 
         // GET: DailyScrums/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.dailyScrums == null)
+            if (id == null || _context.dailyScrumsTable == null)
             {
                 return NotFound();
             }
 
-            var dailyScrum = await _context.dailyScrums
-                .Include(d => d.Scrum)
+            var dailyScrum = await _context.dailyScrumsTable
+                .Include(d => d.scrum)
                 .FirstOrDefaultAsync(m => m.dailyScrumID == id);
             if (dailyScrum == null)
             {
@@ -146,14 +146,14 @@ namespace ProjectManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.dailyScrums == null)
+            if (_context.dailyScrumsTable == null)
             {
-                return Problem("Entity set 'ApplicationDbContext.dailyScrums'  is null.");
+                return Problem("Entity set 'ApplicationDbContext.dailyScrumsTable'  is null.");
             }
-            var dailyScrum = await _context.dailyScrums.FindAsync(id);
+            var dailyScrum = await _context.dailyScrumsTable.FindAsync(id);
             if (dailyScrum != null)
             {
-                _context.dailyScrums.Remove(dailyScrum);
+                _context.dailyScrumsTable.Remove(dailyScrum);
             }
             
             await _context.SaveChangesAsync();
@@ -162,7 +162,7 @@ namespace ProjectManagementSystem.Controllers
 
         private bool DailyScrumExists(int id)
         {
-          return (_context.dailyScrums?.Any(e => e.dailyScrumID == id)).GetValueOrDefault();
+          return (_context.dailyScrumsTable?.Any(e => e.dailyScrumID == id)).GetValueOrDefault();
         }
     }
 }

@@ -12,14 +12,14 @@ using ProjectManagementSystem.Data;
 namespace ProjectManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240621224623_ModelUp")]
-    partial class ModelUp
+    [Migration("20240712153854_ProjectTeamAddProperty")]
+    partial class ProjectTeamAddProperty
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.24")
+                .HasAnnotation("ProductVersion", "6.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -300,6 +300,10 @@ namespace ProjectManagementSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("projectTeamID");
 
                     b.HasIndex("ProjectID");
@@ -375,15 +379,12 @@ namespace ProjectManagementSystem.Data.Migrations
                     b.Property<string>("helperID")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("taskID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("tasksForUsertaskForUserID")
+                    b.Property<int>("taskForUserID")
                         .HasColumnType("int");
 
                     b.HasKey("supportID");
 
-                    b.HasIndex("tasksForUsertaskForUserID");
+                    b.HasIndex("taskForUserID");
 
                     b.ToTable("supports");
                 });
@@ -516,7 +517,7 @@ namespace ProjectManagementSystem.Data.Migrations
                 {
                     b.HasOne("ProjectManagementSystem.Models.TasksForUser", "tasksForUser")
                         .WithMany()
-                        .HasForeignKey("tasksForUsertaskForUserID")
+                        .HasForeignKey("taskForUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -526,12 +527,17 @@ namespace ProjectManagementSystem.Data.Migrations
             modelBuilder.Entity("ProjectManagementSystem.Models.TasksForUser", b =>
                 {
                     b.HasOne("ProjectManagementSystem.Models.Project", "project")
-                        .WithMany()
+                        .WithMany("TasksForUsers")
                         .HasForeignKey("ProjectID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("project");
+                });
+
+            modelBuilder.Entity("ProjectManagementSystem.Models.Project", b =>
+                {
+                    b.Navigation("TasksForUsers");
                 });
 #pragma warning restore 612, 618
         }

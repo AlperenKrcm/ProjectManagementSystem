@@ -59,6 +59,7 @@ namespace ProjectManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("taskForUserID,ProjectID,userID,taskDeadline,status")] TasksForUser tasksForUser)
         {
+
             tasksForUser.project = await _context.projects.FindAsync(tasksForUser.ProjectID);
             ModelState.Remove("project");
 

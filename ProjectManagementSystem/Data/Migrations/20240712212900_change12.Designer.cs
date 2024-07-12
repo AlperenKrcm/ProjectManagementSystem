@@ -12,14 +12,14 @@ using ProjectManagementSystem.Data;
 namespace ProjectManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240621224623_ModelUp")]
-    partial class ModelUp
+    [Migration("20240712212900_change12")]
+    partial class change12
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.24")
+                .HasAnnotation("ProductVersion", "6.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -234,17 +234,24 @@ namespace ProjectManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("dailyScrumID"), 1L, 1);
 
-                    b.Property<string>("description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("scrumID")
+                    b.Property<int>("ScrumID")
                         .HasColumnType("int");
+
+                    b.Property<int>("dailyScrumNumber")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("dailyScrumTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("dailyScrumID");
 
-                    b.HasIndex("scrumID");
+                    b.HasIndex("ScrumID");
 
-                    b.ToTable("dailyScrums");
+                    b.ToTable("dailyScrumsTable");
                 });
 
             modelBuilder.Entity("ProjectManagementSystem.Models.Project", b =>
@@ -300,6 +307,10 @@ namespace ProjectManagementSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("projectTeamID");
 
                     b.HasIndex("ProjectID");
@@ -337,22 +348,15 @@ namespace ProjectManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("sprintID"), 1L, 1);
 
-                    b.Property<int>("ScrumID")
-                        .HasColumnType("int");
-
                     b.Property<string>("description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("springTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("dailyScrumNumber")
+                    b.Property<int>("scrumID")
                         .HasColumnType("int");
 
                     b.HasKey("sprintID");
 
-                    b.HasIndex("ScrumID");
+                    b.HasIndex("scrumID");
 
                     b.ToTable("sprints");
                 });
@@ -375,15 +379,12 @@ namespace ProjectManagementSystem.Data.Migrations
                     b.Property<string>("helperID")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("taskID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("tasksForUsertaskForUserID")
+                    b.Property<int>("taskForUserID")
                         .HasColumnType("int");
 
                     b.HasKey("supportID");
 
-                    b.HasIndex("tasksForUsertaskForUserID");
+                    b.HasIndex("taskForUserID");
 
                     b.ToTable("supports");
                 });
@@ -470,13 +471,13 @@ namespace ProjectManagementSystem.Data.Migrations
 
             modelBuilder.Entity("ProjectManagementSystem.Models.DailyScrum", b =>
                 {
-                    b.HasOne("ProjectManagementSystem.Models.Scrum", "Scrum")
+                    b.HasOne("ProjectManagementSystem.Models.Scrum", "scrum")
                         .WithMany()
-                        .HasForeignKey("scrumID")
+                        .HasForeignKey("ScrumID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Scrum");
+                    b.Navigation("scrum");
                 });
 
             modelBuilder.Entity("ProjectManagementSystem.Models.ProjectTeam", b =>
@@ -503,20 +504,20 @@ namespace ProjectManagementSystem.Data.Migrations
 
             modelBuilder.Entity("ProjectManagementSystem.Models.Sprint", b =>
                 {
-                    b.HasOne("ProjectManagementSystem.Models.Scrum", "scrum")
+                    b.HasOne("ProjectManagementSystem.Models.Scrum", "Scrum")
                         .WithMany()
-                        .HasForeignKey("ScrumID")
+                        .HasForeignKey("scrumID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("scrum");
+                    b.Navigation("Scrum");
                 });
 
             modelBuilder.Entity("ProjectManagementSystem.Models.Support", b =>
                 {
                     b.HasOne("ProjectManagementSystem.Models.TasksForUser", "tasksForUser")
                         .WithMany()
-                        .HasForeignKey("tasksForUsertaskForUserID")
+                        .HasForeignKey("taskForUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -526,12 +527,17 @@ namespace ProjectManagementSystem.Data.Migrations
             modelBuilder.Entity("ProjectManagementSystem.Models.TasksForUser", b =>
                 {
                     b.HasOne("ProjectManagementSystem.Models.Project", "project")
-                        .WithMany()
+                        .WithMany("TasksForUsers")
                         .HasForeignKey("ProjectID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("project");
+                });
+
+            modelBuilder.Entity("ProjectManagementSystem.Models.Project", b =>
+                {
+                    b.Navigation("TasksForUsers");
                 });
 #pragma warning restore 612, 618
         }

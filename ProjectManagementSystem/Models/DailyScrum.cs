@@ -6,11 +6,16 @@ namespace ProjectManagementSystem.Models
     {
         public int dailyScrumID { get; set; }
 
-        [ForeignKey("scrum")]
-        public int scrumID {  get; set; }
-        public Scrum Scrum { get; set; }
+        public int dailyScrumNumber {  get; set; }
 
-        public string? description { get; set; } 
+        [ForeignKey("scrum")]
+        public int ScrumID {  get; set; }
+
+        public Scrum scrum { get; set; }
+
+        public DateTime dailyScrumTime { get; set; }
+
+        public string description {  get; set; }
 
     }
 }

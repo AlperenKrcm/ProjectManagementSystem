@@ -59,6 +59,7 @@ namespace ProjectManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("supportID,taskForUserID,description,helpDescription,helperID")] Support support)
         {
+            ModelState.Remove("TasksForUser");
             if (ModelState.IsValid)
             {
                 _context.Add(support);

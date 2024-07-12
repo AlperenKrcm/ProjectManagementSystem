@@ -116,7 +116,7 @@ namespace ProjectManagementSystem.Data.Migrations
                 {
                     sprintID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    sprintNumber = table.Column<int>(type: "int", nullable: false),
+                    dailyScrumNumber = table.Column<int>(type: "int", nullable: false),
                     ScrumID = table.Column<int>(type: "int", nullable: false),
                     springTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     description = table.Column<string>(type: "nvarchar(max)", nullable: false)

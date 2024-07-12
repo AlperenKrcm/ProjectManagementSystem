@@ -13,13 +13,7 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.sprintNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.scrum)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.springTime)
+                @Html.DisplayNameFor(model => model.Scrum)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.description)
@@ -31,13 +25,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.sprintNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.scrum.scrumID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.springTime)
+                @Html.DisplayFor(modelItem => item.Scrum.scrumID)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.description)

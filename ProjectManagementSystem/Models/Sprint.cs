@@ -6,16 +6,11 @@ namespace ProjectManagementSystem.Models
     {
         public int sprintID { get; set; }
 
-        public int sprintNumber {  get; set; }
-
         [ForeignKey("scrum")]
-        public int ScrumID {  get; set; }
+        public int scrumID {  get; set; }
+        public Scrum Scrum { get; set; }
 
-        public Scrum scrum { get; set; }
-
-        public DateTime springTime { get; set; }
-
-        public string description {  get; set; }
+        public string? description { get; set; } 
 
     }
 }
