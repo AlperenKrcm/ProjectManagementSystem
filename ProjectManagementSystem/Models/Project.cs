@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ProjectManagementSystem.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProjectManagementSystem.Models
 {
@@ -16,7 +17,7 @@ namespace ProjectManagementSystem.Models
         public DateTime startTime { get; set; }
         public DateTime projectDeadline { get; set; }
 
-        public string status {  get; set; }
+        public StatusEnum status {  get; set; }
 
         public string client {  get; set; }
         public virtual ICollection<TasksForUser> TasksForUsers { get; set; }

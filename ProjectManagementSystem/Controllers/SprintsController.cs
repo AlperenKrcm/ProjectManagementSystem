@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -23,7 +24,22 @@ namespace ProjectManagementSystem.Controllers
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.sprints.Include(s => s.Scrum);
-            return View(await applicationDbContext.ToListAsync());
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var userProjectIds = _context.projectTeams
+                               .Where(pt => pt.UserID == userId)
+                               .Select(pt => pt.ProjectID)
+                               .ToList();
+
+            var scrums = _context.scrums.Include(s => s.project)
+                                     .Where(s => userProjectIds.Contains(s.ProjectID))
+                                     .ToList();
+            var sprint = _context.sprints.Include(s => s.Scrum)
+                                     .Where(s => userProjectIds.Contains(s.scrumID))
+                                     .ToList();
+            return View(sprint);
+
         }
 
         // GET: Sprints/Details/5
@@ -59,6 +75,7 @@ namespace ProjectManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("sprintID,scrumID,description")] Sprint sprint)
         {
+            ModelState.Remove("Scrum");
             if (ModelState.IsValid)
             {
                 _context.Add(sprint);
@@ -155,14 +172,14 @@ namespace ProjectManagementSystem.Controllers
             {
                 _context.sprints.Remove(sprint);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool SprintExists(int id)
         {
-          return (_context.sprints?.Any(e => e.sprintID == id)).GetValueOrDefault();
+            return (_context.sprints?.Any(e => e.sprintID == id)).GetValueOrDefault();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿@model ProjectManagementSystem.Models.Project
+﻿@using ProjectManagementSystem.Enums
+@model ProjectManagementSystem.Models.Project
 
 @{
     ViewData["Title"] = "Edit";
@@ -35,7 +36,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="status" class="control-label"></label>
-                <input asp-for="status" class="form-control" />
+                <select asp-for="status" class="form-control" asp-items="Html.GetEnumSelectList<StatusEnum>()"></select>
                 <span asp-validation-for="status" class="text-danger"></span>
             </div>
             <div class="form-group">

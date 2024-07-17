@@ -43,8 +43,8 @@
                 @Html.DisplayFor(modelItem => item.helperID)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.supportID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.supportID">Details</a> |
+                <a asp-action="Edit" asp-route-id="@item.supportID">Helping</a> |
+                <a asp-action="Details" asp-controller="TasksForUsers" asp-route-id="@item.taskForUserID">Task Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.supportID">Delete</a>
             </td>
         </tr>

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +15,8 @@ namespace ProjectManagementSystem.Controllers
     public class DailyScrumsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public DailyScrumsController(ApplicationDbContext context)
         {
@@ -22,8 +26,20 @@ namespace ProjectManagementSystem.Controllers
         // GET: DailyScrums
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.dailyScrumsTable.Include(d => d.scrum);
-            return View(await applicationDbContext.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+
+            var userProjectIds = _context.projectTeams
+                               .Where(pt => pt.UserID == userId)
+                               .Select(pt => pt.ProjectID)
+                               .ToList();
+            var scrums = _context.scrums.Include(s => s.project)
+                                     .Where(s => userProjectIds.Contains(s.ProjectID))
+                                     .ToList();
+            var dailyscrums = _context.dailyScrumsTable.Include(s => s.scrum)
+                                     .Where(s => userProjectIds.Contains(s.ScrumID))
+                                     .ToList();
+            return View(dailyscrums);
         }
 
         // GET: DailyScrums/Details/5

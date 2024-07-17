@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProjectManagementSystem.Models
 {
     public class DailyScrum
     {
+        [Key]
         public int dailyScrumID { get; set; }
 
         public int dailyScrumNumber {  get; set; }

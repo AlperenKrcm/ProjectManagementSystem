@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,14 @@ namespace ProjectManagementSystem.Controllers
     public class TasksForUsersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public TasksForUsersController(ApplicationDbContext context)
+        public TasksForUsersController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         // GET: TasksForUsers
@@ -46,10 +51,39 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: TasksForUsers/Create
-        public IActionResult Create()
+        public IActionResult CreateSelectProject()
         {
             ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName");
+
             return View();
+        }
+        public IActionResult Create(int ProjectID)
+        {
+            ViewData.Clear();
+
+            ViewData["ProjectID"] = new SelectList(_context.projects.Where(x=>x.projectID==ProjectID), "projectID", "projectName");
+
+            var tasksForUser = new TasksForUser
+            {
+                ProjectID = ProjectID
+
+            };
+            ViewData["ProjectTeamUsers"] = new SelectList(
+               from pt in _context.projectTeams
+               join u in _context.Users on pt.UserID equals u.Id
+               where pt.ProjectID == ProjectID
+               select new { pt.projectTeamID, u.UserName },"UserName","UserName");
+/*
+            var users = _userManager.Users.ToList();
+            var userSelectList = users.Select(user => new SelectListItem
+            {
+                Value = user.Id,
+                Text = user.UserName
+            }).ToList();
+
+            ViewData["ProjectTeamUsers"] = new SelectList(_context.projectTeams.Where(x => x.ProjectID == ProjectID), "projectTeamID", "UserID");
+            */ 
+            return View(tasksForUser);
         }
 
         // POST: TasksForUsers/Create
@@ -160,14 +194,14 @@ namespace ProjectManagementSystem.Controllers
             {
                 _context.tasksForUser.Remove(tasksForUser);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool TasksForUserExists(int id)
         {
-          return (_context.tasksForUser?.Any(e => e.taskForUserID == id)).GetValueOrDefault();
+            return (_context.tasksForUser?.Any(e => e.taskForUserID == id)).GetValueOrDefault();
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +15,7 @@ namespace ProjectManagementSystem.Controllers
     public class ScrumsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public ScrumsController(ApplicationDbContext context)
         {
@@ -22,9 +25,18 @@ namespace ProjectManagementSystem.Controllers
         // GET: Scrums
         public async Task<IActionResult> Index()
         {
-            ViewData.Clear();
-            var applicationDbContext = _context.scrums.Include(s => s.project);
-            return View(await applicationDbContext.ToListAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+
+            var userProjectIds = _context.projectTeams
+                               .Where(pt => pt.UserID == userId)
+                               .Select(pt => pt.ProjectID)
+                               .ToList();
+            var scrums = _context.scrums.Include(s => s.project)
+                                     .Where(s => userProjectIds.Contains(s.ProjectID))
+                                     .ToList();
+
+            return View(scrums);
         }
 
         // GET: Scrums/Details/5

@@ -22,9 +22,19 @@ namespace ProjectManagementSystem.Controllers
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-              return _context.projects != null ? 
-                          View(await _context.projects.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.projects'  is null.");
+            if (_context.projects == null)
+            {
+                return Problem("Entity set 'ApplicationDbContext.projects' is null.");
+            }
+            else
+            {
+                var projects = await _context.projects.ToListAsync();
+                return View(projects);
+
+            }
+
+
+
         }
 
         // GET: Projects/Details/5
@@ -60,7 +70,7 @@ namespace ProjectManagementSystem.Controllers
         {
             project.TasksForUsers = project.TasksForUsers ?? new List<TasksForUser>();
             ModelState.Remove("TasksForUsers");
-            project.status = "Started";
+            project.status = 0;
             ModelState.Remove("status");
             if (ModelState.IsValid)
             {
@@ -74,7 +84,7 @@ namespace ProjectManagementSystem.Controllers
                 var errors = ModelState.Values.SelectMany(v => v.Errors);
                 foreach (var error in errors)
                 {
-                    ViewData["ModelStateError"] = error.ErrorMessage; 
+                    ViewData["ModelStateError"] = error.ErrorMessage;
                 }
                 return View(project);
             }
@@ -107,6 +117,8 @@ namespace ProjectManagementSystem.Controllers
             {
                 return NotFound();
             }
+            ModelState.Remove("status");
+            ModelState.Remove("TasksForUsers");
 
             if (ModelState.IsValid)
             {
@@ -163,14 +175,14 @@ namespace ProjectManagementSystem.Controllers
             {
                 _context.projects.Remove(project);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ProjectExists(int id)
         {
-          return (_context.projects?.Any(e => e.projectID == id)).GetValueOrDefault();
+            return (_context.projects?.Any(e => e.projectID == id)).GetValueOrDefault();
         }
     }
 }

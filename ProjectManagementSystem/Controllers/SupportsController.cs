@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +15,11 @@ namespace ProjectManagementSystem.Controllers
     public class SupportsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public SupportsController(ApplicationDbContext context)
+        public SupportsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
+            _userManager=userManager;
             _context = context;
         }
 
@@ -48,7 +52,8 @@ namespace ProjectManagementSystem.Controllers
         // GET: Supports/Create
         public IActionResult Create()
         {
-            ViewData["taskForUserID"] = new SelectList(_context.tasksForUser, "taskForUserID", "taskForUserID");
+            var userEmail = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
+            ViewData["taskForUserID"] = new SelectList(_context.tasksForUser.Where(x => x.userID ==userEmail).ToList(),"taskForUserID", "taskForUserID");
             return View();
         }
 
@@ -57,9 +62,11 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("supportID,taskForUserID,description,helpDescription,helperID")] Support support)
+        public async Task<IActionResult> Create([Bind("supportID,taskForUserID,description")] Support support)
         {
             ModelState.Remove("TasksForUser");
+            support.helperID = "Not Helping";
+            support.helpDescription = "Not Helping";
             if (ModelState.IsValid)
             {
                 _context.Add(support);
@@ -92,13 +99,16 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("supportID,taskForUserID,description,helpDescription,helperID")] Support support)
+        public async Task<IActionResult> Edit(int id, [Bind("supportID,taskForUserID,description,helpDescription")] Support support)
         {
             if (id != support.supportID)
             {
                 return NotFound();
             }
+            ModelState.Remove("TasksForUser");
+            var userEmail = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
 
+            support.helperID = userEmail;
             if (ModelState.IsValid)
             {
                 try
