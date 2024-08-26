@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
+using SQLitePCL;
 
 namespace ProjectManagementSystem.Controllers
 {
@@ -16,9 +18,13 @@ namespace ProjectManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly SupportService _supportService;
+        private readonly GenericService<Support> _genericService;
 
-        public SupportsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public SupportsController(SupportService supportService,ApplicationDbContext context, UserManager<IdentityUser> userManager, GenericService<Support> genericService)
         {
+            _genericService = genericService;
+             _supportService = supportService;
             _userManager=userManager;
             _context = context;
         }
@@ -26,8 +32,7 @@ namespace ProjectManagementSystem.Controllers
         // GET: Supports
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.supports.Include(s => s.tasksForUser);
-            return View(await applicationDbContext.ToListAsync());
+          return View(await _supportService.GetSupportAsync());
         }
 
         // GET: Supports/Details/5
@@ -38,9 +43,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var support = await _context.supports
-                .Include(s => s.tasksForUser)
-                .FirstOrDefaultAsync(m => m.supportID == id);
+            var support = await _supportService.GetDetailsSupportAsync(id);
             if (support == null)
             {
                 return NotFound();
@@ -58,8 +61,6 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: Supports/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("supportID,taskForUserID,description")] Support support)
@@ -69,8 +70,7 @@ namespace ProjectManagementSystem.Controllers
             support.helpDescription = "Not Helping";
             if (ModelState.IsValid)
             {
-                _context.Add(support);
-                await _context.SaveChangesAsync();
+                await _genericService.AddAsync(support);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["taskForUserID"] = new SelectList(_context.tasksForUser, "taskForUserID", "taskForUserID", support.taskForUserID);
@@ -113,8 +113,7 @@ namespace ProjectManagementSystem.Controllers
             {
                 try
                 {
-                    _context.Update(support);
-                    await _context.SaveChangesAsync();
+                    await _genericService.UpdateAsync(support);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -141,9 +140,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var support = await _context.supports
-                .Include(s => s.tasksForUser)
-                .FirstOrDefaultAsync(m => m.supportID == id);
+            var support = await _supportService.GetDetailsSupportAsync(id);
             if (support == null)
             {
                 return NotFound();
@@ -161,13 +158,11 @@ namespace ProjectManagementSystem.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.supports'  is null.");
             }
-            var support = await _context.supports.FindAsync(id);
-            if (support != null)
-            {
-                _context.supports.Remove(support);
-            }
-            
-            await _context.SaveChangesAsync();
+            var support = await _genericService.GetByIdAsync(id);
+
+            await _genericService.DeleteAsync(support);
+
+
             return RedirectToAction(nameof(Index));
         }
 

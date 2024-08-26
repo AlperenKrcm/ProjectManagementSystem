@@ -5,36 +5,31 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
 
 namespace ProjectManagementSystem.Controllers
 {
     public class ProjectsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly GenericService<Project> _genericService;
+        private readonly ProjectService _projectService;
 
-        public ProjectsController(ApplicationDbContext context)
+        public ProjectsController(ApplicationDbContext context, GenericService<Project> genericService, ProjectService projectService )
         {
+            _projectService = projectService;
+            _genericService= genericService;
             _context = context;
         }
 
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            if (_context.projects == null)
-            {
-                return Problem("Entity set 'ApplicationDbContext.projects' is null.");
-            }
-            else
-            {
-                var projects = await _context.projects.ToListAsync();
-                return View(projects);
-
-            }
-
-
-
+            
+                return View(await _genericService.GetAllAsync());
         }
 
         // GET: Projects/Details/5
@@ -45,8 +40,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var project = await _context.projects
-                .FirstOrDefaultAsync(m => m.projectID == id);
+            var project = await _projectService.GetDetailsProject(id);
             if (project == null)
             {
                 return NotFound();
@@ -62,8 +56,6 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: Projects/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("projectID,projectName,projectDescription,startTime,projectDeadline,client")] Project project)
@@ -74,20 +66,11 @@ namespace ProjectManagementSystem.Controllers
             ModelState.Remove("status");
             if (ModelState.IsValid)
             {
-                _context.Add(project);
-                await _context.SaveChangesAsync();
+               await _genericService.AddAsync(project);
                 return RedirectToAction(nameof(Index));
             }
-            else
-            {
-                // ModelState hatalarını logla
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-                foreach (var error in errors)
-                {
-                    ViewData["ModelStateError"] = error.ErrorMessage;
-                }
-                return View(project);
-            }
+            return View();
+               
         }
 
         // GET: Projects/Edit/5
@@ -98,7 +81,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var project = await _context.projects.FindAsync(id);
+            var project = await _genericService.GetByIdAsync(id);
             if (project == null)
             {
                 return NotFound();
@@ -107,8 +90,6 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: Projects/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("projectID,projectName,projectDescription,startTime,projectDeadline,status,client")] Project project)
@@ -124,8 +105,7 @@ namespace ProjectManagementSystem.Controllers
             {
                 try
                 {
-                    _context.Update(project);
-                    await _context.SaveChangesAsync();
+                    await _genericService.UpdateAsync(project);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -151,8 +131,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var project = await _context.projects
-                .FirstOrDefaultAsync(m => m.projectID == id);
+            var project = await _projectService.GetDetailsProject(id);
             if (project == null)
             {
                 return NotFound();
@@ -170,13 +149,12 @@ namespace ProjectManagementSystem.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.projects'  is null.");
             }
-            var project = await _context.projects.FindAsync(id);
+            var project = await _genericService.GetByIdAsync(id);
             if (project != null)
             {
-                _context.projects.Remove(project);
+            await _genericService.DeleteAsync(project);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

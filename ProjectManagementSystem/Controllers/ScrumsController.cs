@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
 
 namespace ProjectManagementSystem.Controllers
 {
@@ -16,9 +17,13 @@ namespace ProjectManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly GenericService<Scrum> _genericService;
+        private readonly ScrumService _ScrumService;
 
-        public ScrumsController(ApplicationDbContext context)
+        public ScrumsController(ApplicationDbContext context, GenericService<Scrum> genericService, ScrumService scrumService)
         {
+            _genericService = genericService;
+            _ScrumService = scrumService;
             _context = context;
         }
 
@@ -26,17 +31,7 @@ namespace ProjectManagementSystem.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-
-            var userProjectIds = _context.projectTeams
-                               .Where(pt => pt.UserID == userId)
-                               .Select(pt => pt.ProjectID)
-                               .ToList();
-            var scrums = _context.scrums.Include(s => s.project)
-                                     .Where(s => userProjectIds.Contains(s.ProjectID))
-                                     .ToList();
-
-            return View(scrums);
+            return View(await _ScrumService.GetScrumAsync(userId));
         }
 
         // GET: Scrums/Details/5
@@ -47,9 +42,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var scrum = await _context.scrums
-                .Include(s => s.project)
-                .FirstOrDefaultAsync(m => m.scrumID == id);
+            var scrum = await _ScrumService.GetDetailsScrumsAsync(id);
             if (scrum == null)
             {
                 return NotFound();
@@ -71,66 +64,10 @@ namespace ProjectManagementSystem.Controllers
         public async Task<IActionResult> Create([Bind("scrumID,scrumMaster,ProjectID")] Scrum scrum, int numberofSprint)
         {
             ModelState.Remove("Project");
-            if (ModelState.IsValid)
+            if(ModelState.IsValid)
             {
-                _context.Add(scrum);
-                await _context.SaveChangesAsync();
-
-                DailyScrum dummydaily = new DailyScrum();
-               
-                dummydaily = _context.dailyScrumsTable.Where(x => x.ScrumID == scrum.scrumID).FirstOrDefault();
-
-
-                if (dummydaily != null)
-                {
-
-                    var a = dummydaily.dailyScrumTime;
-
-                    for (int i = dummydaily.dailyScrumNumber; i < numberofSprint; i++)
-                    {
-                        DailyScrum dailyScrum = new DailyScrum();
-                        dailyScrum.ScrumID = Convert.ToInt32(scrum.scrumID);
-                        dailyScrum.dailyScrumNumber = i + dummydaily.dailyScrumNumber + 1;
-
-                        if ( a.DayOfWeek == DayOfWeek.Saturday)
-                            a = a.AddDays(2);
-                        else if (a.DayOfWeek == DayOfWeek.Sunday)
-                            a = a.AddDays(1);
-                        
-                        dailyScrum.dailyScrumTime = a;
-                        dailyScrum.description = "Yoneticinin düzenlenmesi için boş bırakıldı";
-
-                        _context.Add(dailyScrum);
-                        await _context.SaveChangesAsync();
-
-                    }
-
-                }
-                else
-                {
-                    DateTime a= DateTime.Now;
-                    for (int i = 0; i < numberofSprint; i++)
-                    {
-                        
-                        DailyScrum dailyScrum = new DailyScrum();
-                        dailyScrum.ScrumID = Convert.ToInt32(scrum.scrumID);
-                        dailyScrum.dailyScrumNumber = i + 1;
-                        
-                        if (a.DayOfWeek == DayOfWeek.Saturday)
-                            a = a.AddDays(2);
-                        else if (a.DayOfWeek == DayOfWeek.Sunday)
-                            a = a.AddDays(1);
-                      
-
-                        dailyScrum.dailyScrumTime = a;
-                        dailyScrum.description = "Yoneticinin düzenlenmesi için boş bırakıldı";
-                        _context.Add(dailyScrum);
-                        await _context.SaveChangesAsync();
-                        a = a.AddDays(1);
-                    }
-                }
-              return RedirectToAction(nameof(Index));
-
+                await _ScrumService.AddScrumWithDailyScrumsAsync(scrum, numberofSprint);
+                return RedirectToAction(nameof(Index));
             }
             ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName", scrum.ProjectID);
 
@@ -147,7 +84,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var scrum = await _context.scrums.FindAsync(id);
+            var scrum = await _genericService.GetByIdAsync(id);
             if (scrum == null)
             {
                 return NotFound();
@@ -172,8 +109,7 @@ namespace ProjectManagementSystem.Controllers
             {
                 try
                 {
-                    _context.Update(scrum);
-                    await _context.SaveChangesAsync();
+                    await _genericService.UpdateAsync(scrum);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -200,9 +136,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var scrum = await _context.scrums
-                .Include(s => s.project)
-                .FirstOrDefaultAsync(m => m.scrumID == id);
+            var scrum = await _ScrumService.GetDetailsScrumsAsync(id);
             if (scrum == null)
             {
                 return NotFound();
@@ -220,13 +154,8 @@ namespace ProjectManagementSystem.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.scrums'  is null.");
             }
-            var scrum = await _context.scrums.FindAsync(id);
-            if (scrum != null)
-            {
-                _context.scrums.Remove(scrum);
-            }
-
-            await _context.SaveChangesAsync();
+            var scrum = await _genericService.GetByIdAsync(id);
+            await _genericService.DeleteAsync(scrum);
             return RedirectToAction(nameof(Index));
         }
 

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
 
 namespace ProjectManagementSystem.Controllers
 {
@@ -16,33 +17,29 @@ namespace ProjectManagementSystem.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public ProjectTeamsController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly ProjectTeamService _projectTeamService;
+        private readonly GenericService<ProjectTeam> _genericService;
+        public ProjectTeamsController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ProjectTeamService projectTeamService, GenericService<ProjectTeam> genericService)
         {
+            _genericService = genericService;
+            _projectTeamService = projectTeamService;
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
         }
 
-        // GET: ProjectTeams
         public async Task<IActionResult> Index()
         {
-
-            var applicationDbContext = _context.projectTeams.Include(p => p.Project);
-
-            return View(await applicationDbContext.ToListAsync());
+            return View(await _projectTeamService.GetProjectTeam());
         }
 
-        // GET: ProjectTeams/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null || _context.projectTeams == null)
             {
                 return NotFound();
             }
-
-            var projectTeam = await _context.projectTeams
-                .Include(p => p.Project)
-                .FirstOrDefaultAsync(m => m.projectTeamID == id);
+            var projectTeam = await _projectTeamService.GetDetailsProjectTeam(id);
             if (projectTeam == null)
             {
                 return NotFound();
@@ -52,7 +49,7 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: ProjectTeams/Create
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
             ViewData.Clear();
             var users = _userManager.Users.ToList();
@@ -69,8 +66,6 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: ProjectTeams/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("projectTeamID,ProjectID,UserID,ProjectRole,UserName")] ProjectTeam projectTeam)
@@ -87,8 +82,7 @@ namespace ProjectManagementSystem.Controllers
             ModelState.Remove("Project");
             if (ModelState.IsValid)
             {
-                _context.Add(projectTeam);
-                await _context.SaveChangesAsync();
+                await _genericService.AddAsync(projectTeam);
                 return RedirectToAction(nameof(Index));
             }
            
@@ -106,7 +100,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var projectTeam = await _context.projectTeams.FindAsync(id);
+            var projectTeam = await _genericService.GetByIdAsync(id);
             if (projectTeam == null)
             {
                 return NotFound();
@@ -116,8 +110,6 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: ProjectTeams/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("projectTeamID,ProjectID,UserID,ProjectRole")] ProjectTeam projectTeam)
@@ -126,13 +118,13 @@ namespace ProjectManagementSystem.Controllers
             {
                 return NotFound();
             }
-
+            ModelState.Remove("UserName");
+            ModelState.Remove("Project");
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(projectTeam);
-                    await _context.SaveChangesAsync();
+                    await _genericService.UpdateAsync(projectTeam);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -159,9 +151,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var projectTeam = await _context.projectTeams
-                .Include(p => p.Project)
-                .FirstOrDefaultAsync(m => m.projectTeamID == id);
+            var projectTeam = await _projectTeamService.GetDetailsProjectTeam(id);
             if (projectTeam == null)
             {
                 return NotFound();
@@ -179,13 +169,12 @@ namespace ProjectManagementSystem.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.projectTeams'  is null.");
             }
-            var projectTeam = await _context.projectTeams.FindAsync(id);
+            var projectTeam = await _genericService.GetByIdAsync(id);
             if (projectTeam != null)
             {
-                _context.projectTeams.Remove(projectTeam);
+            await _genericService.DeleteAsync(projectTeam);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

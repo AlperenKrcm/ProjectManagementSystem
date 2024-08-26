@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using ProjectManagementSystem.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,7 +17,7 @@ namespace ProjectManagementSystem.Models
 
         public DateTime taskDeadline { get; set; } 
 
-        public string status {  get; set; } // controller => status=Appointed 
+        public TasksEnum status {  get; set; } // controller => status=Appointed 
 
 
     }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
+using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
 
 public class Program
 {
@@ -22,7 +24,14 @@ public class Program
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
         builder.Services.AddControllersWithViews();
-
+        builder.Services.AddScoped<SupportService>();
+        builder.Services.AddScoped<DailyScrumService>();
+        builder.Services.AddScoped<ProjectService>();
+        builder.Services.AddScoped<ProjectTeamService>();
+        builder.Services.AddScoped<ScrumService>();
+        builder.Services.AddScoped<SprintService>();
+        builder.Services.AddScoped<TasksForUserService>();
+        builder.Services.AddScoped(typeof(GenericService<>));
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

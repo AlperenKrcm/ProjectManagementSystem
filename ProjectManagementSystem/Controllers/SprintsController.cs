@@ -8,37 +8,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
 
 namespace ProjectManagementSystem.Controllers
 {
     public class SprintsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly GenericService<Sprint> _genericService;
+        private readonly SprintService _SprintService;
 
-        public SprintsController(ApplicationDbContext context)
+        public SprintsController(ApplicationDbContext context, GenericService<Sprint> genericService, SprintService sprintService)
         {
+            _genericService=genericService;
+            _SprintService=sprintService;
             _context = context;
         }
 
         // GET: Sprints
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.sprints.Include(s => s.Scrum);
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var userProjectIds = _context.projectTeams
-                               .Where(pt => pt.UserID == userId)
-                               .Select(pt => pt.ProjectID)
-                               .ToList();
-
-            var scrums = _context.scrums.Include(s => s.project)
-                                     .Where(s => userProjectIds.Contains(s.ProjectID))
-                                     .ToList();
-            var sprint = _context.sprints.Include(s => s.Scrum)
-                                     .Where(s => userProjectIds.Contains(s.scrumID))
-                                     .ToList();
-            return View(sprint);
+            return View(await _SprintService.GetSprintAsync(userId));
 
         }
 
@@ -50,9 +41,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var sprint = await _context.sprints
-                .Include(s => s.Scrum)
-                .FirstOrDefaultAsync(m => m.sprintID == id);
+            var sprint = await _SprintService.GetSprintDetailsAsync(id);
             if (sprint == null)
             {
                 return NotFound();
@@ -78,8 +67,7 @@ namespace ProjectManagementSystem.Controllers
             ModelState.Remove("Scrum");
             if (ModelState.IsValid)
             {
-                _context.Add(sprint);
-                await _context.SaveChangesAsync();
+                await _genericService.AddAsync(sprint);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["scrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", sprint.scrumID);
@@ -93,8 +81,7 @@ namespace ProjectManagementSystem.Controllers
             {
                 return NotFound();
             }
-
-            var sprint = await _context.sprints.FindAsync(id);
+            var sprint = await _genericService.GetByIdAsync(id);
             if (sprint == null)
             {
                 return NotFound();
@@ -119,8 +106,7 @@ namespace ProjectManagementSystem.Controllers
             {
                 try
                 {
-                    _context.Update(sprint);
-                    await _context.SaveChangesAsync();
+                    await _genericService.UpdateAsync(sprint);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -147,9 +133,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var sprint = await _context.sprints
-                .Include(s => s.Scrum)
-                .FirstOrDefaultAsync(m => m.sprintID == id);
+            var sprint = await _SprintService.GetSprintDetailsAsync(id);
             if (sprint == null)
             {
                 return NotFound();
@@ -167,13 +151,8 @@ namespace ProjectManagementSystem.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.sprints'  is null.");
             }
-            var sprint = await _context.sprints.FindAsync(id);
-            if (sprint != null)
-            {
-                _context.sprints.Remove(sprint);
-            }
-
-            await _context.SaveChangesAsync();
+            var sprint = await _genericService.GetByIdAsync(id);
+            await _genericService.DeleteAsync(sprint);
             return RedirectToAction(nameof(Index));
         }
 

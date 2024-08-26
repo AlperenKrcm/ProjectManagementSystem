@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
+using ProjectManagementSystem.Services;
 
 namespace ProjectManagementSystem.Controllers
 {
@@ -17,29 +18,21 @@ namespace ProjectManagementSystem.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly GenericService<DailyScrum> _genericService;
+        private readonly DailyScrumService _dailyScrumService;
 
-        public DailyScrumsController(ApplicationDbContext context)
+        public DailyScrumsController(ApplicationDbContext context, DailyScrumService dailyScrumService, GenericService<DailyScrum> genericService)
         {
+            _genericService = genericService;
             _context = context;
+            _dailyScrumService = dailyScrumService;
         }
 
         // GET: DailyScrums
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-
-            var userProjectIds = _context.projectTeams
-                               .Where(pt => pt.UserID == userId)
-                               .Select(pt => pt.ProjectID)
-                               .ToList();
-            var scrums = _context.scrums.Include(s => s.project)
-                                     .Where(s => userProjectIds.Contains(s.ProjectID))
-                                     .ToList();
-            var dailyscrums = _context.dailyScrumsTable.Include(s => s.scrum)
-                                     .Where(s => userProjectIds.Contains(s.ScrumID))
-                                     .ToList();
-            return View(dailyscrums);
+            return View(await _dailyScrumService.GetDailyScrumsAsync(userId));
         }
 
         // GET: DailyScrums/Details/5
@@ -50,9 +43,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var dailyScrum = await _context.dailyScrumsTable
-                .Include(d => d.scrum)
-                .FirstOrDefaultAsync(m => m.dailyScrumID == id);
+            var dailyScrum = await _dailyScrumService.GetDetailsDailyScrumAsync(id);
             if (dailyScrum == null)
             {
                 return NotFound();
@@ -75,10 +66,10 @@ namespace ProjectManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("dailyScrumID,dailyScrumNumber,ScrumID,dailyScrumTime,description")] DailyScrum dailyScrum)
         {
+            ModelState.Remove("scrum");
             if (ModelState.IsValid)
             {
-                _context.Add(dailyScrum);
-                await _context.SaveChangesAsync();
+                await _genericService.AddAsync(dailyScrum);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID", dailyScrum.ScrumID);
@@ -93,7 +84,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var dailyScrum = await _context.dailyScrumsTable.FindAsync(id);
+            var dailyScrum = await _genericService.GetByIdAsync(id);
             if (dailyScrum == null)
             {
                 return NotFound();
@@ -113,13 +104,13 @@ namespace ProjectManagementSystem.Controllers
             {
                 return NotFound();
             }
+            ModelState.Remove("scrum");
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(dailyScrum);
-                    await _context.SaveChangesAsync();
+                    await _genericService.UpdateAsync(dailyScrum);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -146,9 +137,7 @@ namespace ProjectManagementSystem.Controllers
                 return NotFound();
             }
 
-            var dailyScrum = await _context.dailyScrumsTable
-                .Include(d => d.scrum)
-                .FirstOrDefaultAsync(m => m.dailyScrumID == id);
+            var dailyScrum = await _dailyScrumService.GetDetailsDailyScrumAsync(id);
             if (dailyScrum == null)
             {
                 return NotFound();
@@ -166,13 +155,12 @@ namespace ProjectManagementSystem.Controllers
             {
                 return Problem("Entity set 'ApplicationDbContext.dailyScrumsTable'  is null.");
             }
-            var dailyScrum = await _context.dailyScrumsTable.FindAsync(id);
+            var dailyScrum = await _genericService.GetByIdAsync(id);
             if (dailyScrum != null)
             {
-                _context.dailyScrumsTable.Remove(dailyScrum);
+            await _genericService.DeleteAsync(dailyScrum);
             }
             
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

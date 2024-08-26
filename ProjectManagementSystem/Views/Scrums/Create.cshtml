@@ -21,11 +21,13 @@
                 <label asp-for="ProjectID" class="control-label"></label>
                 <select asp-for="ProjectID" class ="form-control" asp-items="ViewBag.ProjectID"></select>
             </div>
+            
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <label class="control-label"> Kaç gün için scrum oluşturmak istersiniz?</label>
+                <input type="number" id="numberofSprint" name="numberofSprint" class="form-control" />
             </div>
             <div class="form-group">
-                <input type="number" id="numberofSprint" name="numberofSprint" class="form-control" />
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
