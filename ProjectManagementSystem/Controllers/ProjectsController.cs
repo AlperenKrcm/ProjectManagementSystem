@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: Projects/Create
+        [Authorize(Roles = "admin")]
+
         public IActionResult Create()
         {
             return View();
@@ -74,6 +77,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: Projects/Edit/5
+        [Authorize(Roles = "admin,ScrumMaster")]
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.projects == null)
@@ -91,6 +96,7 @@ namespace ProjectManagementSystem.Controllers
 
         // POST: Projects/Edit/5
         [HttpPost]
+        [Authorize(Roles = "admin,ScrumMaster")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("projectID,projectName,projectDescription,startTime,projectDeadline,status,client")] Project project)
         {
@@ -122,6 +128,7 @@ namespace ProjectManagementSystem.Controllers
             }
             return View(project);
         }
+        [Authorize(Roles = "admin,ScrumMaster")]
 
         // GET: Projects/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -143,6 +150,8 @@ namespace ProjectManagementSystem.Controllers
         // POST: Projects/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin,ScrumMaster")]
+
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             if (_context.projects == null)

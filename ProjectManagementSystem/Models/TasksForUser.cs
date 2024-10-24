@@ -19,6 +19,8 @@ namespace ProjectManagementSystem.Models
 
         public TasksEnum status {  get; set; } // controller => status=Appointed 
 
+        public string taskDescription { get; set; }
+
 
     }
 

@@ -24,8 +24,7 @@ namespace ProjectManagementSystem.Services
         }
         public async Task AddScrumWithDailyScrumsAsync(Scrum scrum, int numberofSprint)
         {
-            _context.Add(scrum);
-            await _context.SaveChangesAsync();
+           
 
             DailyScrum dummydaily = _context.dailyScrumsTable
                 .Where(x => x.ScrumID == scrum.scrumID)

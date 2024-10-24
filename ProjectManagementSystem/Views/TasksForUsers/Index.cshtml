@@ -3,12 +3,23 @@
 @{
     ViewData["Title"] = "Index";
 }
+@{
+    bool a = User.IsInRole("admin");
+    bool dummy = User.IsInRole("admin") || User.IsInRole("TeamLeader");
 
+}
 <h1>Index</h1>
-
-<p>
-    <a asp-action="CreateSelectProject">Create New</a>
-</p>
+@{
+    if (dummy)
+    {
+        <p>
+        <a asp-action="CreateSelectProject">Create New</a>
+        </p>
+    }
+}
+<h5 style="color:red">
+    @TempData["HataMesaji"]
+</h5>
 <table class="table">
     <thead>
         <tr>
@@ -23,6 +34,9 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.taskDeadline)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.taskDescription)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.status)
@@ -45,13 +59,21 @@
             <td>
                 @Html.DisplayFor(modelItem => item.taskDeadline)
             </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.taskDescription)
+                </td>
             <td>
                 @Html.DisplayFor(modelItem => item.status)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.taskForUserID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.taskForUserID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.taskForUserID">Delete</a>
+                    <a asp-action="Details" asp-route-id="@item.taskForUserID">Details</a> |
+
+                    @if(dummy)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.taskForUserID">Edit</a>
+                        <a asp-action = "Delete" asp-route-id="@item.taskForUserID">Delete</a>
+                    }
+                   
             </td>
         </tr>
 }

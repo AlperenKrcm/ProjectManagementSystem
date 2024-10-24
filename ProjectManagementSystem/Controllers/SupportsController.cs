@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,6 +15,7 @@ using SQLitePCL;
 
 namespace ProjectManagementSystem.Controllers
 {
+    [Authorize]
     public class SupportsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -133,6 +135,7 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: Supports/Delete/5
+        [Authorize(Roles ="admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.supports == null)
@@ -151,6 +154,7 @@ namespace ProjectManagementSystem.Controllers
 
         // POST: Supports/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

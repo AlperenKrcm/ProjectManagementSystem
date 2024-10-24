@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -19,12 +20,13 @@ namespace ProjectManagementSystem.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly GenericService<Scrum> _genericService;
         private readonly ScrumService _ScrumService;
-
-        public ScrumsController(ApplicationDbContext context, GenericService<Scrum> genericService, ScrumService scrumService)
+        private readonly EmailApiService _emailApiService;
+        public ScrumsController(ApplicationDbContext context, GenericService<Scrum> genericService, ScrumService scrumService, EmailApiService emailApiService)
         {
             _genericService = genericService;
             _ScrumService = scrumService;
             _context = context;
+            _emailApiService = emailApiService;
         }
 
         // GET: Scrums
@@ -52,6 +54,7 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: Scrums/Create
+        [Authorize(Roles = "admin,ScrumMaster")]
         public IActionResult Create()
         {
             ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName");
@@ -66,9 +69,12 @@ namespace ProjectManagementSystem.Controllers
             ModelState.Remove("Project");
             if(ModelState.IsValid)
             {
+                await _genericService.AddAsync(scrum);
                 await _ScrumService.AddScrumWithDailyScrumsAsync(scrum, numberofSprint);
+                await _emailApiService.SendEmailMultiAsync(await _genericService.TeamListAsync(scrum.ProjectID), "Scrum", "Yeni bir scrum oluşturuldu");
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName", scrum.ProjectID);
 
 

@@ -1,9 +1,19 @@
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Models;
 using ProjectManagementSystem.Services;
-
+public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
+{
+    public bool Authorize(DashboardContext context)
+    {
+        var httpContext = context.GetHttpContext();
+        return httpContext.User.IsInRole("admin"); // Sadece Admin rolüne sahip kullanýcýlar eriþebilir
+    }
+}
 public class Program
 {
     public static async Task Main(string[] args)
@@ -31,8 +41,44 @@ public class Program
         builder.Services.AddScoped<ScrumService>();
         builder.Services.AddScoped<SprintService>();
         builder.Services.AddScoped<TasksForUserService>();
+        builder.Services.AddHttpClient<EmailApiService>();
         builder.Services.AddScoped(typeof(GenericService<>));
+        builder.Services.AddHangfire(config =>
+        {
+            config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                  .UseSimpleAssemblyNameTypeSerializer()
+                  .UseDefaultTypeSerializer()
+                  .UseSqlServerStorage("Server=(localdb)\\mssqllocaldb;Database=aspnet-ProjectManagementSystem6;Trusted_Connection=True;MultipleActiveResultSets=true", new SqlServerStorageOptions
+                  {
+                      CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                      SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                      QueuePollInterval = TimeSpan.Zero,
+                      UseRecommendedIsolationLevel = true,
+                      UsePageLocksOnDequeue = true,
+                      DisableGlobalLocks = true
+                  });
+        });
+        builder.Services.AddHangfireServer();
+
         var app = builder.Build();
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments("/hangfire"))
+            {
+                var isAuthenticated = context.Request.Cookies["HangfireAuth"];
+
+                if (string.IsNullOrEmpty(isAuthenticated) || isAuthenticated != "true")
+                {
+                    context.Response.Redirect("/AccAdmin/Login");
+                    return;
+                }
+            }
+            await next();
+        });
+
+        app.UseHangfireDashboard("/hangfire");
+
+        app.UseRouting();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -58,44 +104,10 @@ public class Program
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
-        using (var scope = app.Services.CreateScope())
-        {
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-           
+        app.UseHangfireDashboard("/hangfire");
 
+        RecurringJob.AddOrUpdate<DailyEmailService>(x => x.SendDailyScrumEmails(),"0 8 * * *");
 
-            if (await userManager.FindByEmailAsync("aslankral1905@outlook.com") == null && "scrummaster@gmail.com"==null && "teamperson@gmail.com"==null && "teamleadar@gmail.com"==null)
-            {
-                string pass = "D1ene*me2";
-
-                var user = new IdentityUser();
-                user.UserName = "aslankral1905@outlook.com";
-                user.Email = "aslankral1905@outlook.com";
-
-                var user2=new IdentityUser();
-                user2.UserName = "scrummaster@gmail.com";
-                user2.Email = "scrummaster@gmail.com";
-
-                var user3 = new IdentityUser();
-                user3.UserName = "teamperson@gmail.com";
-                user3.Email = "teamperson@gmail.com"; 
-                
-                var user4 = new IdentityUser();
-                user4.UserName = "teamleader@gmail.com";
-                user4.Email = "teamleader@gmail.com";
-
-                await userManager.CreateAsync(user, pass);
-                await userManager.CreateAsync(user2, pass);
-                await userManager.CreateAsync(user3, pass);
-                await userManager.CreateAsync(user4, pass);
-
-                await userManager.AddToRoleAsync(user, "admin");
-                await userManager.AddToRoleAsync(user2, "ScrumMaster");
-                await userManager.AddToRoleAsync(user3, "TeamPerson");
-                await userManager.AddToRoleAsync(user4, "TeamLeader");
-
-            }
-        }
         app.UseHttpsRedirection();
         app.UseStaticFiles();
 

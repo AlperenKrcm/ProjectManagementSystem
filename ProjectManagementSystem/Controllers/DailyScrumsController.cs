@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,12 +21,14 @@ namespace ProjectManagementSystem.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly GenericService<DailyScrum> _genericService;
         private readonly DailyScrumService _dailyScrumService;
+        private readonly EmailApiService _emailApiService;
 
-        public DailyScrumsController(ApplicationDbContext context, DailyScrumService dailyScrumService, GenericService<DailyScrum> genericService)
+        public DailyScrumsController(ApplicationDbContext context, DailyScrumService dailyScrumService, GenericService<DailyScrum> genericService, EmailApiService emailApiService)
         {
             _genericService = genericService;
             _context = context;
             _dailyScrumService = dailyScrumService;
+            _emailApiService = emailApiService;
         }
 
         // GET: DailyScrums
@@ -53,6 +56,7 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: DailyScrums/Create
+        [Authorize(Roles ="admin,ScrumMaster")]
         public IActionResult Create()
         {
             ViewData["ScrumID"] = new SelectList(_context.scrums, "scrumID", "scrumID");
@@ -60,10 +64,10 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: DailyScrums/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin,ScrumMaster")]
+
         public async Task<IActionResult> Create([Bind("dailyScrumID,dailyScrumNumber,ScrumID,dailyScrumTime,description")] DailyScrum dailyScrum)
         {
             ModelState.Remove("scrum");
@@ -77,6 +81,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: DailyScrums/Edit/5
+        [Authorize(Roles = "admin,ScrumMaster")]
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.dailyScrumsTable == null)
@@ -94,10 +100,10 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: DailyScrums/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin,ScrumMaster")]
+
         public async Task<IActionResult> Edit(int id, [Bind("dailyScrumID,dailyScrumNumber,ScrumID,dailyScrumTime,description")] DailyScrum dailyScrum)
         {
             if (id != dailyScrum.dailyScrumID)
@@ -130,6 +136,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: DailyScrums/Delete/5
+        [Authorize(Roles = "admin,ScrumMaster")]
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.dailyScrumsTable == null)
@@ -148,6 +156,7 @@ namespace ProjectManagementSystem.Controllers
 
         // POST: DailyScrums/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles ="admin,ScrumMaster")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

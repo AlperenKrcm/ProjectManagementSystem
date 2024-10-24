@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.Data;
+using ProjectManagementSystem.Models;
 
 namespace ProjectManagementSystem.Services
 {
@@ -14,7 +15,23 @@ namespace ProjectManagementSystem.Services
             _context = context;
             _dbSet = _context.Set<T>();
         }
+        public async Task<List<string>> TeamListAsync(int id)
+        {
+            int projectId = id;
 
+            var projectTeamMembers = await _context.projectTeams
+                .Where(pt => pt.ProjectID == projectId)
+                .Select(pt => pt.UserID)
+                .ToListAsync();
+
+              var a= await _context.Users
+                .Where(u => projectTeamMembers.Contains(u.Id))
+                .Select(u => u.Email)
+                .ToListAsync();
+            return a;
+
+        }
+    
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);

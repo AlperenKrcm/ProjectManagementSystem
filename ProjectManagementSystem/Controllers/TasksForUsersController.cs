@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,19 +22,23 @@ namespace ProjectManagementSystem.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly TasksForUserService _tasksForUserService;
         private readonly GenericService<TasksForUser> _genericService;
-        public TasksForUsersController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, TasksForUserService tasksForUserService,GenericService<TasksForUser> genericService)
+        private readonly EmailApiService _emailApiService;
+        public TasksForUsersController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, TasksForUserService tasksForUserService,GenericService<TasksForUser> genericService,EmailApiService emailApiService)
         {
             _genericService= genericService;
             _tasksForUserService= tasksForUserService;
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailApiService = emailApiService;
         }
 
         // GET: TasksForUsers
         public async Task<IActionResult> Index()
         {
-            return View( await _tasksForUserService.GetTasksForUserAsync());
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            return View( await _tasksForUserService.GetTasksForUserAsync(userId, userRole));
         }
 
         // GET: TasksForUsers/Details/5
@@ -45,19 +50,26 @@ namespace ProjectManagementSystem.Controllers
 
         // GET: TasksForUsers/Create
 
-        // [Authorize(Roles ="admin")]
-        // [Authorize(Roles="TeamLeader")]
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public IActionResult CreateSelectProject()
         {
-            ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName");
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            ViewData.Clear();
+            if (userRole == "admin" || userRole == "TeamLeader")
+            {
+                ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName");
 
-            return View();
+                return View();
+            }
+
+            TempData["HataMesaji"] = "Görev Atama Yetkiniz Yoktur.";
+            return RedirectToAction("Index");
         }
-        // [Authorize(Roles ="admin")]
-        // [Authorize(Roles="TeamLeader")]
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public IActionResult Create(int ProjectID)
         {
-            ViewData.Clear();
 
 
             ViewData["ProjectID"] = new SelectList(_context.projects.Where(x=>x.projectID==ProjectID), "projectID", "projectName");
@@ -90,12 +102,13 @@ namespace ProjectManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // [Authorize(Roles ="admin")]
-        // [Authorize(Roles="TeamLeader")]
-        public async Task<IActionResult> Create([Bind("taskForUserID,ProjectID,userID,taskDeadline,status")] TasksForUser tasksForUser)
+        [Authorize(Roles = "admin,TeamLeader")]
+
+        public async Task<IActionResult> Create([Bind("taskForUserID,ProjectID,userID,taskDeadline,status, taskDescription")] TasksForUser tasksForUser)
         {
 
             tasksForUser.project = await _context.projects.FindAsync(tasksForUser.ProjectID);
+            _emailApiService.SendEmailAsync(tasksForUser.userID, "Görev atandı", tasksForUser.taskDescription);
             tasksForUser.status = 0;
             ModelState.Remove("status");
             ModelState.Remove("project");
@@ -110,6 +123,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: TasksForUsers/Edit/5
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.tasksForUser == null)
@@ -128,6 +143,8 @@ namespace ProjectManagementSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public async Task<IActionResult> Edit(int id, [Bind("taskForUserID,ProjectID,userID,taskDeadline,status")] TasksForUser tasksForUser)
         {
             if (id != tasksForUser.taskForUserID)
@@ -157,6 +174,7 @@ namespace ProjectManagementSystem.Controllers
             ViewData["ProjectID"] = new SelectList(_context.projects, "projectID", "projectName", tasksForUser.ProjectID);
             return View(tasksForUser);
         }
+        [Authorize(Roles = "admin,TeamLeader")]
 
         public async Task<IActionResult> Delete(int? id)
         {
@@ -176,6 +194,8 @@ namespace ProjectManagementSystem.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             if (_context.tasksForUser == null)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -49,6 +50,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: ProjectTeams/Create
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public IActionResult Create()
         {
             ViewData.Clear();
@@ -64,6 +67,7 @@ namespace ProjectManagementSystem.Controllers
 
             return View();
         }
+        [Authorize(Roles = "admin,TeamLeader")]
 
         // POST: ProjectTeams/Create
         [HttpPost]
@@ -93,6 +97,8 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: ProjectTeams/Edit/5
+        [Authorize(Roles = "admin,TeamLeader")]
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.projectTeams == null)
@@ -110,6 +116,7 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // POST: ProjectTeams/Edit/5
+        [Authorize(Roles = "admin,TeamLeader")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("projectTeamID,ProjectID,UserID,ProjectRole")] ProjectTeam projectTeam)
@@ -144,6 +151,7 @@ namespace ProjectManagementSystem.Controllers
         }
 
         // GET: ProjectTeams/Delete/5
+        [Authorize(Roles = "admin,TeamLeader")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.projectTeams == null)
@@ -162,6 +170,7 @@ namespace ProjectManagementSystem.Controllers
 
         // POST: ProjectTeams/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "admin,TeamLeader")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -177,6 +186,7 @@ namespace ProjectManagementSystem.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        [Authorize(Roles = "admin,TeamLeader")]
 
         private bool ProjectTeamExists(int id)
         {
